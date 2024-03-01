@@ -1,8 +1,13 @@
 import { Todo } from "../models/todo.models.js";
 
 const getTodos = async (req, res) => {
-  const todos = await Todo.find();
-  res.json(todos);
+  try {
+    const todos = await Todo.find();
+    res.json(todos);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
 };
 
 const addTodo = async (req, res) => {
@@ -11,10 +16,11 @@ const addTodo = async (req, res) => {
     const todo = await Todo.create({
       content: content,
     });
-
-    return res.json(todo);
+    console.log("201");
+    return res.status(201).json(todo);
   } catch (error) {
     console.log(error);
+    res.status(500).json(error);
   }
 };
 
@@ -22,28 +28,30 @@ const deleteTodo = async (req, res) => {
   const todoId = req.params.id;
   try {
     const response = await Todo.findByIdAndDelete(todoId);
-    res.json(response);
+    res.status(200).json(response);
   } catch (error) {
     console.log(error);
-    res.json(error);
+    res.json(error).status(500);
   }
 };
 
 const updateTodo = async (req, res) => {
   const todoId = req.params.id;
   const { content } = req.body;
+  const { isCompleted } = req.body;
   try {
     const response = await Todo.findByIdAndUpdate(
       todoId,
       {
         content: content,
+        isCompleted: isCompleted,
       },
       { new: true }
     );
-    res.json(response);
+    res.status(200).json(response);
   } catch (error) {
     console.log(error);
-    res.json(error);
+    res.status(500).json(error);
   }
 };
 
@@ -52,10 +60,19 @@ const getTodo = async (req, res) => {
 
   try {
     const response = await Todo.findById(todoId);
+
+    if (response === null) {
+      res
+        .status(404)
+        .json({ message: `Todo with id: ${todoId} doesn't exists` });
+    }
+
     res.json(response);
   } catch (error) {
     console.log(error);
-    res.json(error);
+    res.status(400).json({
+      message: error.message,
+    });
   }
 };
 
