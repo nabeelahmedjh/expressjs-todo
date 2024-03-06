@@ -2,7 +2,6 @@ import express from "express";
 import {
   createTodoValidationSchema,
   updatedTodoValidationSchema,
-  getTodoIdValidationSchema,
 } from "../validators/todo.validator.js";
 
 const createTodoValidator = async (req, res, next) => {
@@ -21,13 +20,22 @@ const createTodoValidator = async (req, res, next) => {
   }
 };
 
-const getTodoIdValidator = async (req, res, next) => {
+// const getTodoIdValidator = async (req, res, next) => {
+//   try {
+//     await getTodoIdValidationSchema.validateAsync(req.params);
+//     next();
+//   } catch (error) {
+//     res.status(400).send({ message: error.message });
+//   }
+// };
+
+const updateTodoValidator = async (req, res, next) => {
   try {
-    await getTodoIdValidationSchema.validateAsync(req.params);
+    await updatedTodoValidationSchema.validateAsync(req.body);
     next();
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
 };
 
-export { createTodoValidator };
+export { createTodoValidator, updateTodoValidator };

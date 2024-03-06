@@ -6,16 +6,17 @@ const createTodoValidationSchema = Joi.object({
 });
 
 const updatedTodoValidationSchema = Joi.object({
+  // id: Joi.string().required(),
   content: Joi.string().required(),
   isCompleted: Joi.boolean(),
 });
 
-const getTodoIdValidationSchema = Joi.object({
-  id: Joi.string().required(),
-});
+// const getTodoIdValidationSchema = Joi.object({
+//   id: Joi.string().required(),
+// });
 
-export {
-  createTodoValidationSchema,
-  updatedTodoValidationSchema,
-  getTodoIdValidationSchema,
-};
+// const deleteTodoValidationSchema = Joi.object({
+//   id: Joi.string().required(),
+// });
+
+export { createTodoValidationSchema, updatedTodoValidationSchema };
