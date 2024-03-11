@@ -11,13 +11,15 @@ import {
   createTodoValidator,
   updateTodoValidator,
 } from "../middlewares/todo.middleware.js";
+import { verifyToken } from "../middlewares/auth.middleware.js";
+
 const todoRouter = express.Router();
 
-todoRouter.get("/", getTodos);
-todoRouter.post("/", createTodoValidator, addTodo);
-todoRouter.get("/:id", getTodo);
-todoRouter.put("/:id", updateTodoValidator, updateTodo);
-todoRouter.delete("/:id", deleteTodo);
-todoRouter.delete("/", deleteTodos);
+todoRouter.get("/", verifyToken, getTodos);
+todoRouter.post("/", verifyToken, createTodoValidator, addTodo);
+todoRouter.get("/:id", verifyToken, getTodo);
+todoRouter.put("/:id", verifyToken, updateTodoValidator, updateTodo);
+todoRouter.delete("/:id", verifyToken, deleteTodo);
+todoRouter.delete("/", verifyToken, deleteTodos);
 
 export { todoRouter };
