@@ -1,86 +1,107 @@
-const axios = require("axios");
+import request from "supertest";
+import { app } from "../src/index";
+import { getTodos } from "../src/controllers/todo.controller";
+import { MongoDBContainer } from "@testcontainers/mongodb";
+import mongoose from "mongoose";
 
-const BASE_URL = "http://localhost:5000/todo/";
-const LOGIN_URL = "http://localhost:5000/auth/login";
 const requestBody = {
   content: "TESTING FROM JEST",
 };
 let requestConfig;
 
 describe("Todo", () => {
-  let userToken;
   beforeAll(async () => {
-    // Adjust username and password based on your test environment
-    const response = await axios.post(LOGIN_URL, {
+    // register a user
+    await request(app).post("/auth/register").send({
       username: "dabu",
       password: "123456",
     });
 
-    // console.log(response.data.token);
+    const res = await request(app).post("/auth/login").send({
+      username: "dabu",
+      password: "123456",
+    });
 
     requestConfig = {
-      headers: {
-        Authorization: response.data.token,
-      },
+      authorization: res.body.token,
     };
   });
 
-  // testing the getTodos function
+  afterAll(async () => {
+    await mongoose.connection.close();
+  });
+
   it("should return all todos of the user", async () => {
-    const response = await axios.get(BASE_URL, requestConfig);
+    const response = await request(app).get("/todo").set(requestConfig);
     expect(response.status).toBe(200);
   });
 
   // testing the addTodo function
   it("should add a new todo for user", async () => {
-    const response = await axios.post(BASE_URL, requestBody, requestConfig);
+    const response = await request(app)
+      .post("/todo")
+      .set(requestConfig)
+      .send(requestBody);
+    // const response = await axios.post(BASE_URL, requestBody, requestConfig);
     // console.log(response);
     expect(response.status).toBe(201);
-    expect(response.data.content).toBe("TESTING FROM JEST");
-    expect(response.data.isCompleted).toBe(false);
+    expect(response.body.content).toBe("TESTING FROM JEST");
+    expect(response.body.isCompleted).toBe(false);
   });
 
   // testing the deleteTodo function
   it("should delete a todo for user", async () => {
-    const postResponse = await axios.post(BASE_URL, requestBody, requestConfig);
-    expect(postResponse.status).toBe(201);
+    const todo = await request(app)
+      .post("/todo")
+      .set(requestConfig)
+      .send(requestBody);
 
-    const resourceId = postResponse.data._id;
-    const response = await axios.delete(
-      `${BASE_URL}${resourceId}`,
-      requestConfig
-    );
+    expect(todo.status).toBe(201);
+
+    const resourceId = todo.body._id;
+
+    const response = await request(app)
+      .delete(`/todo/${resourceId}`)
+      .set(requestConfig);
+
     expect(response.status).toBe(200);
   });
 
   // testing the updateTodo function
   it("should update a todo for user", async () => {
-    const postResponse = await axios.post(BASE_URL, requestBody, requestConfig);
-    expect(postResponse.status).toBe(201);
+    const createResponse = await request(app)
+      .post("/todo")
+      .set(requestConfig)
+      .send(requestBody);
+    expect(createResponse.status).toBe(201);
 
-    const resourceId = postResponse.data._id;
-    const response = await axios.put(
-      `${BASE_URL}${resourceId}`,
-      {
-        content: "Updated Todo",
-        isCompleted: true,
-      },
-      requestConfig
-    );
-    expect(response.data.content).toBe("Updated Todo");
-    expect(response.data.isCompleted).toBe(true);
-    expect(response.status).toBe(200);
+    const resourceId = createResponse.body._id;
+
+    const response = await request(app).post("/todo").set(requestConfig).send({
+      content: "Updated Todo",
+      isCompleted: true,
+    });
+    expect(response.body.content).toBe("Updated Todo");
+    expect(response.body.isCompleted).toBe(true);
+    expect(response.status).toBe(201);
   });
 
   // testing the getTodo function
   it("should get a todo for user", async () => {
-    const postResponse = await axios.post(BASE_URL, requestBody, requestConfig);
+    const postResponse = await request(app)
+      .post("/todo")
+      .set(requestConfig)
+      .send(requestBody);
     expect(postResponse.status).toBe(201);
 
-    const resourceId = postResponse.data._id;
-    const response = await axios.get(`${BASE_URL}${resourceId}`, requestConfig);
-    expect(response.data.content).toBe(postResponse.data.content);
-    expect(response.data.isCompleted).toBe(postResponse.data.isCompleted);
+    const resourceId = postResponse.body._id;
+    const response = await request(app)
+      .get(`/todo/${resourceId}`)
+      .set(requestConfig);
+
+    console.log(response.body);
+    expect(response.body.content).toBe(postResponse.body.content);
+    expect(response.body.isCompleted).toBe(postResponse.body.isCompleted);
     expect(response.status).toBe(200);
   });
 });

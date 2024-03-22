@@ -3,10 +3,10 @@ import "dotenv/config";
 
 const DBConnection = async () => {
   try {
-    const connectionInstance = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const connectionInstance = await mongoose.connect(
+      process.env.MONGODB_URI,
+      {}
+    );
 
     console.log(
       `DB connected successfully! to host ${connectionInstance.connection.host}`
